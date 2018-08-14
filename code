@@ -1,0 +1,109 @@
+import math
+import numpy as np
+
+class bundle_good():
+    '''Class of bundled goods with well defined arithmetics'''
+    
+    items = ('Opera A', 'Opera B', \
+             'Ballet A', 'Ballet B', \
+             'Symphonic orchestra concert', \
+             'Rock opera', \
+             'Operetta') # 7 different goods
+
+    # to make a computable attribute
+    @property
+    def nItems(self):
+        '''Number of products'''
+        return len(bundle_good.items)
+        
+    def __init__(self,quantities=[0,0,0,0,0,0,0],price=0.0):
+        '''Initialize the bundle good instance with specified quantities and total price'''
+        
+        if len(quantities)<self.nItems:
+            # add zeros for the unspecified items
+            quantities += [0]*(self.nItems-len(quantities))
+        elif len(quantities)>self.nItems:
+            # ignore extra numbers
+            quantities = quantities[0:self.nItems]
+        #ensure the quantities in the object are integer (using list comprehension)
+        self.quantities=[math.floor(x) for x in quantities]
+        self.price=price
+
+    def __repr__(self):
+        '''String representation of the object'''
+        return 'Bundle object %r with price %1.2f' % (self.quantities,self.price)
+        
+    def __add__(self,other):
+        '''@@@'''
+        
+        if type(other) is bundle_good:
+            # add the quantities using list comprehension with one-to-one matching (zip)
+            q1=[x+y for (x,y) in zip(self.quantities, other.quantities)]
+            # sum of the prices
+            p1=self.price + other.price
+            # return new bundle
+            return bundle_good(q1,p1)
+        
+        elif type(other) in (float,int):
+            # increase the price
+            p1=self.price + other
+            # return new bundle
+            return bundle_good(self.quantities,p1)
+            
+        else:
+            # if other is of the wrong type, raise the TypeError like this:
+            raise TypeError('Can only add bundle to bundle, or number to bundle price')
+
+    def __sub__(self,other):
+        '''Subtraction for bundles: subtract items and prices, or decrease price'''
+
+        if type(other) is bundle_good:
+            # add the quantities using list comprehension with one-to-one matching (zip)
+            q1=[x-y for (x,y) in zip(self.quantities, other.quantities)]
+#             q1_neg = [x < 0 for x in q1] 
+            # sum of the prices
+            p1=self.price - other.price
+#             p1_neg = p1 < 0
+            # check if the subtraction bundle make sense
+#             if p1_neg or any(q1_neg):
+#                 raise ValueError('Can only substract smaller bundle from larger bundle')
+            # return new bundle
+            return bundle_good(q1,p1)
+        
+        elif type(other) in (float,int):
+            # increase the price
+            p1=self.price - other
+            # return new bundle
+            return bundle_good(self.quantities,p1)
+            
+        else:
+            raise TypeError('Can only subtract bundle from bundle, or number from bundle price')
+
+    def __mul__(self,num):
+        '''duplicate the bundle'''
+        assert type(num)==int and num>=0, "Can only duplicate the bundle by non-negative integer factor"
+        q1 = [x*num for x in self.quantities]
+        p1 = self.price*num
+        #return the duplicate bundle
+        return bundle_good(q1,p1)
+    
+
+    def __truediv__(self,num):
+        '''Division for bundles: fraction of the original bundle, only if quantities are devisable'''
+
+        if type(num) is int and num > 0:
+            # divide quantities and check for divisibility
+            q1=[0,]*self.nItems
+            for i in range(self.nItems):
+                if self.quantities[i] % num == 0:
+                    q1[i] = self.quantities[i] / num
+                else:
+                    # if can not be devided without a remainder, raise ValueError:
+                    raise ValueError('Can not divide bundle into fractional parts')
+            # divide the price
+            p1 = self.price / num
+            # return new bundle
+            return bundle_good(q1,p1)
+            
+        else:
+            raise TypeError('Can only divide bundle by an integer')
